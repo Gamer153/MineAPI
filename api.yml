@@ -1,0 +1,211 @@
+openapi: '3.0.3'
+info:
+  title: MineAPI
+  version: '0.1'
+  description:
+    This API allows you to play a 2D sandbox game session. You can start a session with `/play` and control it with the other endpoints.<br>
+    <ul>
+    <li>`/play` - start a world -> returns a play ID, which is required by the other endpoints for playing</li>
+    <li>`/view` - returns a world slice, with some info about the current camera placement</li>
+    <li>`/blocks` - returns some info about the blocks</li>
+    <li>`/move` - move the camera by `dx` and `dy`</li>
+    <li>`/place` - place a block with block ID at coords `x`/`y`</li>
+    <li>`/break` - break block at `x`/`y`</li>
+    <li>`/save` - end the play session and return the info about the world (with all the changed blocks)</li>
+    </ul>
+servers:
+  - url: https://mineapi.deploy.vlant-dev.de
+  - url: http://localhost:5000
+paths:
+  /play:
+    summary: Start
+    description: Start
+    get:
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+          required: false
+        - name: seed
+          in: query
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  play_id:
+                    type: number
+                    example: 83795812795
+  /view:
+    get:
+      parameters:
+        - name: pid
+          description: Play ID
+          in: query
+          schema:
+            type: string
+          required: true
+        - name: string
+          description: return the view as a string array instead of an array of arrays of ints
+          schema:
+            type: boolean
+          required: false
+          in: query
+      responses:
+        "200":
+          description: world view
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  world:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: number
+                        description: block ID
+                      example: [ [1, 1, 1, 1, 2, 1, 1], [2, 2, 2, 1, 1, 2, 1, 3] ]
+                  camera:
+                    type: object
+                    properties:
+                      width:
+                        type: number
+                      height:
+                        type: number
+                      x:
+                        type: number
+                      y:
+                        type: number
+  /blocks:
+    get:
+      responses:
+        "200":
+          description: blocks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    block_id:
+                      type: number
+                    name:
+                      type: string
+  /move:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dx:
+                  type: number
+                dy:
+                  type: number
+      parameters:
+        - name: pid
+          description: Play ID
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: error when moving
+  /place:
+    put:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                block_id:
+                  type: number
+                x:
+                  type: number
+                y:
+                  type: number
+      parameters:
+        - name: pid
+          description: Play ID
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        "204":
+          description: OK
+        "500":
+          description: failed to place block
+  /break:
+    delete:
+      parameters:
+        - name: pid
+          description: Play ID
+          in: query
+          schema:
+            type: string
+        - name: x
+          in: query
+          schema:
+            type: number
+        - name: y
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: broke block
+        "500":
+          description: error when breaking block
+  /save:
+    get:
+      parameters:
+        - name: pid
+          description: Play ID
+          in: query
+          schema:
+            type: string
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  changes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        x:
+                          type: number
+                        y:
+                          type: number
+                        block_id:
+                          type: number
+                  meta:
+                    type: object
+                    properties:
+                      seed:
+                        type: number
+                      name:
+                        type: string
