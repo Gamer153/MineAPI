@@ -31,6 +31,7 @@ BLOCKS = [
     Block(16, "Wool"),
     Block(17, "Sandstone"),
     Block(18, "Cobblestone"),
+    Block(19, "Concrete"),
 ]
 
 DIRT = BLOCKS[0]

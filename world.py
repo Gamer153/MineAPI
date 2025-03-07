@@ -4,7 +4,6 @@ import random
 from blocks import COBBLESTONE, DIRT, GRASS, LOG, SAND, STONE, Block, LEAVES
 
 class World:
-    on_update: "function"
 
     def __init__(self, seed: int):
         self.seed = seed
@@ -12,10 +11,9 @@ class World:
         self._random = random.Random(seed)
         self.changed = dict() # type: dict[tuple[int, int], Block]
         self._cache = dict()
-        self.on_update = None
 
     def default_height_at(self, x: int):
-        return int(self._perlin.noise(x / 300) * 30 + 15)
+        return int(self._perlin.noise(x / 290) * 30 + 15)
 
     def random(self, init: str):
         self._random.seed(init)
@@ -45,10 +43,10 @@ class World:
                         return SAND if (y == height or self.random(f"{self.seed}.{x}-{y}").randint(0, 4) > (height - y)) else DIRT
                 
                 if y == height: return GRASS
-                rand = self.random(f"{self.seed}-{x}-{int(y / 2)}")
+                rand = self.random(f"{self.seed}-{x}-{y}")
                 stoneh = rand.randint(0, 2)
                 if y < height - stoneh - 5:
-                    if rand.randint(0, 3) == 0:
+                    if rand.randint(0, 6) == 0:
                         return COBBLESTONE
                     else:
                         return STONE
@@ -60,7 +58,5 @@ class World:
         return blk
     
     def set_block_at(self, x: int, y: int, block: Block | None):
-        if self.on_update:
-            self.on_update()
         self.changed[(x, y)] = block
         self._cache[(x, y)] = block
